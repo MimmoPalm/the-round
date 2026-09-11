@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { setPlayer } from '../lib/player'
-import { PintIcon } from '../components/PintIcon'
+import { Logo } from '../components/Logo'
 
-export function StartScreen({ onStart }: { onStart: (name: string) => void }) {
+export function StartScreen({ onStart, totalPubs }: { onStart: (name: string) => void; totalPubs: number }) {
   const [firstName, setFirstName] = useState('')
   const [surname, setSurname] = useState('')
   const canSubmit = firstName.trim().length > 0 && surname.trim().length > 0
@@ -18,19 +18,17 @@ export function StartScreen({ onStart }: { onStart: (name: string) => void }) {
     <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-bg px-6 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
-          <PintIcon visited size={52} />
+          <Logo />
         </div>
-        <h1 className="text-center font-display text-[44px] font-semibold leading-[1.05] tracking-tight text-ink">
-          The Round
-        </h1>
         <p className="mt-3 text-center text-[15px] leading-snug text-ink-secondary">
-          969 pubs within 5km of Essex Road. Tick them off, one round at a time.
+          {totalPubs > 0 ? `${totalPubs} pubs across Islington and Hackney.` : 'Every pub across Islington and Hackney.'}{' '}
+          Tick them off, one round at a time.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-9 space-y-3.5">
           <div>
             <label htmlFor="firstName" className="mb-1.5 block text-[13px] font-medium text-ink-secondary">
-              First name
+              Name
             </label>
             <input
               id="firstName"
@@ -38,7 +36,7 @@ export function StartScreen({ onStart }: { onStart: (name: string) => void }) {
               autoComplete="given-name"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Domenico"
+              placeholder="Name"
               className="h-12 w-full rounded-xl border border-border bg-surface px-4 text-[16px] text-ink placeholder:text-ink-muted focus:border-brass focus:outline-none"
             />
           </div>
@@ -52,7 +50,7 @@ export function StartScreen({ onStart }: { onStart: (name: string) => void }) {
               autoComplete="family-name"
               value={surname}
               onChange={(e) => setSurname(e.target.value)}
-              placeholder="Palmieri"
+              placeholder="Surname"
               className="h-12 w-full rounded-xl border border-border bg-surface px-4 text-[16px] text-ink placeholder:text-ink-muted focus:border-brass focus:outline-none"
             />
           </div>

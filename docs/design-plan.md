@@ -40,9 +40,9 @@ sites using the same Google Fonts CDN entries).
   no particle effects.
 - **Milestone** (tier change) = one serif banner, auto-dismisses in <1s
   (`MilestoneBanner`, ~950ms hold). Never blocks input, never repeats.
-- **Postcode conquest**: badge tiles shade from `surface`/`border` (locked,
+- **Council conquest**: badge tiles shade from `surface`/`border` (locked,
   ghost outline crown) to `brass-wash`/`brass` (earned, filled crown) as the
-  ticked percentage for that postcode reaches 100%.
+  ticked percentage for that council (Islington, Hackney) reaches 100%.
 - Motion is `transform`/`opacity` only, spring easing
   (`cubic-bezier(0.34, 1.56, 0.64, 1)`), never layout-thrashing properties.
 - `min-h-[100dvh]` everywhere a screen needs to fill the viewport — never
@@ -64,11 +64,12 @@ sites using the same Google Fonts CDN entries).
 
 ## Iconography
 
-One bespoke two-tone pint-glass pin, defined once as an SVG-string generator
-(`src/lib/pintIcon.ts`) and reused by both the Leaflet marker layer
-(`L.divIcon`) and the React `<PintIcon>` component (list rows, sheets, start
-screen) — so the map and the rest of the UI never drift apart visually.
-Brass fill = visited, ink outline on cream = unvisited. All other icons
+One bespoke English-pint-glass mark, defined once as an SVG-string generator
+(`src/lib/pintIcon.ts`) and reused by the Leaflet marker layer (`L.divIcon`),
+the React `<PintIcon>` component (list rows, sheets), and the `<Logo>`
+crest on the start screen — so the map and the rest of the UI never drift
+apart visually. Unvisited = clean ink outline, empty glass. Visited = the
+same glass filled with amber beer and a small foam head. All other icons
 (nav, search, close, etc.) are small bespoke inline SVGs in
 `src/components/icons.tsx` rather than an icon package — keeps the
 dependency count and bundle size down.

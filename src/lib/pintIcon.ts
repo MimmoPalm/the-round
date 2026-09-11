@@ -1,41 +1,59 @@
 /**
- * Bespoke two-tone pint-glass icon, shared by the Leaflet markers (as a
- * raw SVG string for L.divIcon) and the React <PintIcon> used in
- * list rows / the bottom sheet. Brass fill = visited, ink outline = unvisited.
+ * Bespoke pint-of-beer icon, shared by the Leaflet markers (as a raw SVG
+ * string for L.divIcon), the React <PintIcon> used in list rows / the
+ * bottom sheet / start screen, and the homepage <Logo> crest — one
+ * geometry, reused everywhere so the map and the rest of the UI never
+ * drift apart visually.
  *
- * Geometry is a UK "nonic" pint: the signature outward bulge sits just
- * below the rim and the body tapers to a narrower foot, plus a side
- * handle so the silhouette reads instantly at marker sizes.
+ * Geometry is a classic English straight pint glass: a gentle taper from
+ * a wide rim to a narrower foot, no nonic bulge, no handle. Unticked =
+ * empty ink outline. Ticked = the same glass filled with amber beer and
+ * a small foam head.
  */
 
 const VIEW_W = 32
-const VIEW_H = 28 // trimmed tight to the glass itself — the shadow bleeds outside via the filter region, not extra viewBox padding
+const VIEW_H = 34 // trimmed tight to the glass itself — shadow bleeds outside via the filter region, not extra viewBox padding
 export const PINT_ASPECT = VIEW_H / VIEW_W
 
-const GLASS_PATH =
-  'M8,0 L24,0 C24.9,1.6 25.5,3.1 25.5,5 C25.5,7 23.9,8.4 22.3,9.5 L21.5,28 L10.5,28 L9.7,9.5 C8.1,8.4 6.5,7 6.5,5 C6.5,3.1 7.1,1.6 8,0 Z'
-const HANDLE_PATH =
-  'M22.4,11.2 C28,10.9 29.6,14.3 29.5,16.8 C29.4,19.3 27.7,22.6 21.2,22.2'
+export const INK = '#16130E'
+export const AMBER = '#E8A33D'
+export const FOAM = '#FFF8E9'
+
+/** Rounded-trapezoid outline: wide rim, gentle taper, narrow foot. */
+export const GLASS_PATH =
+  'M7.10,4.60 Q7.00,3.00 8.60,3.00 L23.40,3.00 Q25.00,3.00 24.90,4.60 L23.10,32.40 Q23.00,34.00 21.40,34.00 L10.60,34.00 Q9.00,34.00 8.90,32.40 Z'
+
+/** Wavy foam cap, clipped to the glass outline above the beer line. */
+const FOAM_PATH =
+  'M6.7,3 L25.3,3 L25.0,9.4 C22.8,8.1 21.2,10.3 18.6,9.2 C16.1,8.1 14.3,10.4 11.8,9.3 C9.7,8.3 8.2,9.9 6.9,9.0 Z'
 
 export function pintIconSvg(opts: { visited: boolean; size?: number }): string {
   const { visited, size = 40 } = opts
-  const brass = '#A8793E'
-  const ink = '#16130E'
-  const color = visited ? brass : ink
-  const glassFill = visited ? brass : 'none'
   const h = size * PINT_ASPECT
   const shadowId = `pint-shadow-${visited ? 'v' : 'u'}`
+  const clipId = `pint-clip-${visited ? 'v' : 'u'}`
+
+  const beer = visited
+    ? `<g clip-path="url(#${clipId})">
+        <rect x="5" y="8" width="22" height="27" fill="${AMBER}"/>
+        <path d="${FOAM_PATH}" fill="${FOAM}"/>
+        <circle cx="12" cy="7" r="0.55" fill="${FOAM}" opacity="0.9"/>
+        <circle cx="19" cy="6.2" r="0.4" fill="${FOAM}" opacity="0.8"/>
+      </g>`
+    : ''
+
   return `
 <svg width="${size}" height="${h}" viewBox="0 0 ${VIEW_W} ${VIEW_H}" fill="none" overflow="visible" xmlns="http://www.w3.org/2000/svg">
-  <g filter="url(#${shadowId})">
-    <path d="${GLASS_PATH}" fill="${glassFill}" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="${HANDLE_PATH}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
-  </g>
   <defs>
+    <clipPath id="${clipId}"><path d="${GLASS_PATH}"/></clipPath>
     <filter id="${shadowId}" x="-40%" y="-25%" width="180%" height="160%">
-      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="${ink}" flood-opacity="0.32"/>
+      <feDropShadow dx="0" dy="0.6" stdDeviation="0.7" flood-color="${INK}" flood-opacity="0.3"/>
     </filter>
   </defs>
+  <g filter="url(#${shadowId})">
+    ${beer}
+    <path d="${GLASS_PATH}" fill="none" stroke="${INK}" stroke-width="1.3" stroke-linejoin="round"/>
+  </g>
 </svg>`.trim()
 }
 

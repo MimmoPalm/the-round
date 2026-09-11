@@ -3,7 +3,7 @@ import type { Tier } from './types'
 export const TIERS: Tier[] = [
   { name: 'Local', threshold: 1 },
   { name: 'Regular', threshold: 10 },
-  { name: 'Legend of N1', threshold: 50 },
+  { name: 'Legend', threshold: 50 },
   { name: 'Governor', threshold: 150 },
 ]
 

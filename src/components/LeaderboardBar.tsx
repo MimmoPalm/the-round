@@ -20,14 +20,14 @@ export function LeaderboardBar({
     <button
       type="button"
       onClick={onExpand}
-      className="fixed inset-x-0 z-20 flex h-9 items-center justify-center gap-3 border-t border-border bg-ink px-4 text-bg"
+      className="fixed inset-x-0 z-20 flex h-9 items-center justify-center gap-3 overflow-hidden whitespace-nowrap border-t border-border bg-ink px-4 text-bg"
       style={{ bottom: 'calc(56px + env(safe-area-inset-bottom))' }}
     >
       <span className="font-mono text-[12px]">{rank ? `#${rank}` : '—'}</span>
       <span className="text-[12.5px] font-medium">
-        {count} ticked <span className="text-bg/60">· {pct}% of N1</span>
+        {count} ticked <span className="text-bg/60">· {pct}% conquered</span>
       </span>
-      <span className="text-[11px] text-bg/60">tap for leaderboard ↑</span>
+      <span className="hidden text-[11px] text-bg/60 min-[380px]:inline">tap for leaderboard ↑</span>
     </button>
   )
 }

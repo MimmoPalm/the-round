@@ -31,7 +31,7 @@ export function LeaderboardScreen({
               {toGo} more to reach <span className="text-ink-secondary">{next.name}</span>.
             </p>
           ) : (
-            <p className="mt-1 text-[13px] text-ink-muted">Top tier reached. Islington salutes you.</p>
+            <p className="mt-1 text-[13px] text-ink-muted">Top tier reached. Islington and Hackney salute you.</p>
           )}
           <p className="mt-2.5 border-t border-border pt-2.5 text-[13px] italic text-ink-secondary">
             {progressLine(me?.count ?? 0, totalPubs)}

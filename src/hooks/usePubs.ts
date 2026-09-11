@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Pub } from '../lib/types'
+import type { Council, Pub } from '../lib/types'
 import { makePubId } from '../lib/pubId'
 
 interface RawPub {
@@ -9,6 +9,7 @@ interface RawPub {
   lat: number
   lon: number
   website: string
+  council: Council
 }
 
 export function usePubs() {

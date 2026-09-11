@@ -1,3 +1,5 @@
+export type Council = 'Islington' | 'Hackney'
+
 export interface Pub {
   id: string
   name: string
@@ -6,6 +8,7 @@ export interface Pub {
   lat: number
   lon: number
   website: string
+  council: Council
 }
 
 export interface Visit {
@@ -22,7 +25,7 @@ export interface LeaderboardRow {
   rank: number
 }
 
-export type TierName = 'Local' | 'Regular' | 'Legend of N1' | 'Governor'
+export type TierName = 'Local' | 'Regular' | 'Legend' | 'Governor'
 
 export interface Tier {
   name: TierName

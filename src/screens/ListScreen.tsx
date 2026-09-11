@@ -1,16 +1,23 @@
 import { useMemo, useState } from 'react'
-import type { Pub } from '../lib/types'
+import type { Council, Pub } from '../lib/types'
 import { PintIcon } from '../components/PintIcon'
 import { BottomSheet } from '../components/BottomSheet'
 import { PubDetail } from '../components/PubDetail'
 import { SearchIcon } from '../components/icons'
 
 type Filter = 'all' | 'visited' | 'unvisited'
+type CouncilFilter = 'all' | Council
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'visited', label: 'Visited' },
   { id: 'unvisited', label: 'Unvisited' },
+]
+
+const COUNCIL_FILTERS: { id: CouncilFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'Islington', label: 'Islington' },
+  { id: 'Hackney', label: 'Hackney' },
 ]
 
 export function ListScreen({
@@ -26,11 +33,13 @@ export function ListScreen({
 }) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
+  const [council, setCouncil] = useState<CouncilFilter>('all')
   const [selected, setSelected] = useState<Pub | null>(null)
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase()
     const filtered = pubs.filter((p) => {
+      if (council !== 'all' && p.council !== council) return false
       if (filter === 'visited' && !visitedIds.has(p.id)) return false
       if (filter === 'unvisited' && visitedIds.has(p.id)) return false
       if (!q) return true
@@ -55,7 +64,7 @@ export function ListScreen({
       if (b[0] === 'Unknown') return -1
       return a[0].localeCompare(b[0])
     })
-  }, [pubs, query, filter, visitedIds])
+  }, [pubs, query, filter, council, visitedIds])
 
   const total = pubs.length
   const shown = groups.reduce((n, [, list]) => n + list.length, 0)
@@ -94,6 +103,20 @@ export function ListScreen({
             {shown}/{total}
           </span>
         </div>
+        <div className="mt-2 flex gap-1.5">
+          {COUNCIL_FILTERS.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setCouncil(c.id)}
+              className={`h-8 rounded-full px-3.5 text-[13px] font-medium transition-colors ${
+                council === c.id ? 'bg-brass text-bg' : 'bg-surface text-ink-secondary border border-border'
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {groups.length === 0 ? (
@@ -101,7 +124,7 @@ export function ListScreen({
       ) : (
         groups.map(([postcode, list]) => (
           <section key={postcode}>
-            <h3 className="sticky top-[97px] z-10 border-b border-border bg-bg/95 px-4 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wider text-ink-muted backdrop-blur">
+            <h3 className="sticky top-[139px] z-10 border-b border-border bg-bg/95 px-4 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wider text-ink-muted backdrop-blur">
               {postcode} <span className="text-ink-muted/70">· {list.length}</span>
             </h3>
             <ul className="divide-y divide-border">

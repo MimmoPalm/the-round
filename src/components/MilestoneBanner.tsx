@@ -3,8 +3,8 @@ import { useEffect } from 'react'
 const COPY: Record<string, string> = {
   Local: 'Local. You know where the good stool is now.',
   Regular: 'Regular. The bar staff are starting to recognise you.',
-  'Legend of N1': 'Legend of N1. Buy yourself one on the house.',
-  Governor: 'Governor. Islington answers to you now.',
+  Legend: 'Legend. Buy yourself one on the house.',
+  Governor: 'Governor. Islington and Hackney answer to you now.',
 }
 
 export function MilestoneBanner({ tier, onDone }: { tier: string; onDone: () => void }) {

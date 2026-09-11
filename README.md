@@ -1,17 +1,18 @@
 # The Round
 
-A pub-crawl tracker + game for London N1. Enter your name, tick off pubs
-as you visit them, watch the leaderboard, get a random pick from Pint
-Roulette when you can't decide, and earn a crown for every postcode you
-fully conquer. No login, no gate — honour system, like buying your round.
+A pub-crawl tracker + game for the London boroughs of Islington and
+Hackney. Enter your name, tick off pubs as you visit them, watch the
+leaderboard, get a random pick from Pint Roulette when you can't decide,
+and earn a crown for every council you fully conquer. No login, no gate —
+honour system, like buying your round.
 
-969 pubs within 5km of 329 Essex Road, N1 2YG.
+304 pubs across Islington and Hackney.
 
 ## Stack
 
 - Vite + React + TypeScript + Tailwind CSS v4 (static SPA, no server)
-- Leaflet + leaflet.markercluster for the map (969 pins, clustered for
-  mobile perf)
+- Leaflet + leaflet.markercluster for the map (304 pins, clustered for
+  mobile perf, filterable by council)
 - No icon package, no UI kit, no analytics/trackers — kept deliberately
   dependency-light so it stays fast on 4G
 
@@ -26,13 +27,16 @@ npm run preview   # serve the production build locally
 
 ## Data
 
-- `public/data/pubs.json` — the 969-pub source of truth (name, address,
-  postcode, lat, lon, website). Copied verbatim from the source dataset;
-  not re-fetched or re-derived. Some entries have no address/postcode —
-  the UI shows "address unknown" for those.
+- `public/data/pubs.json` — the 304-pub source of truth (name, address,
+  postcode, lat, lon, website, council). Copied verbatim from the source
+  dataset; not re-fetched or re-derived. Some entries have no
+  address/postcode — the UI shows "address unknown" for those. Every pub
+  has a `council` field of `"Islington"` or `"Hackney"`, which drives the
+  council filters and the per-council crown badges.
 - Pub id = a stable slug derived from `name` + rounded `lat`/`lon`
   (`src/lib/pubId.ts`), so it stays the same across reloads regardless of
-  array order.
+  array order — coordinates are unchanged from the previous dataset, so
+  existing ticks in Supabase keep matching.
 
 ## Backend
 

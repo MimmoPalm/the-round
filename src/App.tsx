@@ -34,7 +34,7 @@ export default function App() {
   } = useVisits(player)
 
   if (!player) {
-    return <StartScreen onStart={setPlayerState} />
+    return <StartScreen onStart={setPlayerState} totalPubs={pubs.length} />
   }
 
   if (pubsLoading) {
