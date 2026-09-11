@@ -1,4 +1,4 @@
-import { pintIconSvg } from '../lib/pintIcon'
+import { pintIconSvg, PINT_ASPECT } from '../lib/pintIcon'
 
 export function PintIcon({
   visited,
@@ -12,7 +12,7 @@ export function PintIcon({
   return (
     <span
       className={className}
-      style={{ display: 'inline-flex', width: size, height: size * 1.3 }}
+      style={{ display: 'inline-flex', width: size, height: size * PINT_ASPECT }}
       dangerouslySetInnerHTML={{ __html: pintIconSvg({ visited, size }) }}
       aria-hidden="true"
     />

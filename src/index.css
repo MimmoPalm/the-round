@@ -40,6 +40,12 @@ body {
 .leaflet-container {
   background: var(--color-bg);
   font-family: var(--font-sans);
+  /* Leaflet's internal panes use z-index up to 700 (popup pane) and its
+     controls sit at 1000. Without this, those z-indices leak into the
+     page's global stacking context (none of our ancestors establish one)
+     and paint on top of any lower z-index UI — e.g. the bottom sheet,
+     which was rendering behind the map and made marker taps look dead. */
+  isolation: isolate;
 }
 
 .leaflet-control-attribution {

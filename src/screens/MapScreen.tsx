@@ -3,17 +3,22 @@ import L from 'leaflet'
 import 'leaflet.markercluster'
 import type { Pub } from '../lib/types'
 import { HOME } from '../lib/geo'
-import { pintIconSvg } from '../lib/pintIcon'
+import { pintMarkerHtml, pintMarkerLayout } from '../lib/pintIcon'
 import { BottomSheet } from '../components/BottomSheet'
 import { PubDetail } from '../components/PubDetail'
 
+const MARKER_SIZE = 40
+
 function pinDivIcon(visited: boolean) {
+  const { boxW, boxH } = pintMarkerLayout(MARKER_SIZE)
   return L.divIcon({
-    html: pintIconSvg({ visited, size: 26 }),
+    html: pintMarkerHtml({ visited, size: MARKER_SIZE }),
     className: 'pint-marker',
-    iconSize: [26, 26 * 1.3],
-    iconAnchor: [13, 26 * 1.3],
-    popupAnchor: [0, -26],
+    iconSize: [boxW, boxH],
+    // anchor sits at the bottom-centre of the glass itself (the hit box
+    // is bottom-aligned to it), not the padded touch-target box
+    iconAnchor: [boxW / 2, boxH],
+    popupAnchor: [0, -boxH],
   })
 }
 
@@ -39,7 +44,9 @@ export function MapScreen({
     if (!containerRef.current || mapRef.current || pubs.length === 0) return
 
     const map = L.map(containerRef.current, {
-      zoomControl: true,
+      // default top-left zoom control is disabled; a thumb-friendly one is
+      // added at bottom-right below (was previously duplicated — both rendered)
+      zoomControl: false,
       attributionControl: true,
     }).setView([HOME.lat, HOME.lon], 14)
 
