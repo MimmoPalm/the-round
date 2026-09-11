@@ -1,0 +1,118 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+@import "leaflet.markercluster/dist/MarkerCluster.css";
+
+@theme {
+  --color-bg: #F6F1E7;
+  --color-surface: #FFFFFF;
+  --color-ink: #16130E;
+  --color-ink-secondary: rgba(22, 19, 14, 0.60);
+  --color-ink-muted: rgba(22, 19, 14, 0.38);
+  --color-brass: #A8793E;
+  --color-brass-wash: rgba(168, 121, 62, 0.16);
+  --color-tick-green: #2F6D4F;
+  --color-border: rgba(22, 19, 14, 0.10);
+
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Leaflet theme overrides */
+.leaflet-container {
+  background: var(--color-bg);
+  font-family: var(--font-sans);
+}
+
+.leaflet-control-attribution {
+  font-size: 10px;
+  background: rgba(246, 241, 231, 0.85) !important;
+  color: var(--color-ink-muted) !important;
+}
+
+.leaflet-control-zoom a {
+  color: var(--color-ink) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* pint-glass marker */
+.pint-marker {
+  display: block;
+}
+
+.pint-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-brass);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 2px 6px rgba(22, 19, 14, 0.18);
+}
+
+.pint-cluster.is-full {
+  background: var(--color-brass);
+  color: var(--color-surface);
+  border-color: var(--color-brass);
+}
+
+/* utility: never use h-screen per spec, min-h-[100dvh] preferred (enforced in components) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes tick-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+.animate-tick-pop {
+  animation: tick-pop 0.42s var(--ease-spring);
+}
+
+@keyframes banner-in {
+  0% { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-banner-in {
+  animation: banner-in 0.5s var(--ease-spring);
+}
+
+@keyframes sheet-up {
+  0% { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}
+
+.animate-sheet-up {
+  animation: sheet-up 0.32s var(--ease-spring);
+}
