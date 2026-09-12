@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getPlayer } from './lib/player'
 import { usePubs } from './hooks/usePubs'
 import { useVisits } from './hooks/useVisits'
+import { useShareCard } from './hooks/useShareCard'
+import { buildPlayerStats } from './lib/stats'
 import { StartScreen } from './screens/StartScreen'
 import { MapScreen } from './screens/MapScreen'
 import { ListScreen } from './screens/ListScreen'
@@ -32,6 +34,18 @@ export default function App() {
     clearMilestone,
     error: visitsError,
   } = useVisits(player)
+  const { share: shareCard, sharing: cardSharing, shareError, clearShareError } = useShareCard()
+
+  const myStats = useMemo(
+    () => buildPlayerStats(pubs, myVisitedIds, player ?? ''),
+    [pubs, myVisitedIds, player],
+  )
+
+  useEffect(() => {
+    if (!shareError) return
+    const t = setTimeout(clearShareError, 4000)
+    return () => clearTimeout(t)
+  }, [shareError, clearShareError])
 
   if (!player) {
     return <StartScreen onStart={setPlayerState} totalPubs={pubs.length} />
@@ -55,11 +69,17 @@ export default function App() {
 
   return (
     <div className="min-h-[100dvh] bg-bg">
-      {milestone ? <MilestoneBanner tier={milestone} onDone={clearMilestone} /> : null}
+      {milestone ? (
+        <MilestoneBanner tier={milestone} onDone={clearMilestone} onShare={() => shareCard(myStats)} />
+      ) : null}
 
       {visitsError ? (
         <div className="fixed inset-x-0 top-0 z-40 bg-ink px-4 py-1.5 text-center text-[12px] text-bg">
           {visitsError}
+        </div>
+      ) : shareError ? (
+        <div className="fixed inset-x-0 top-0 z-40 bg-ink px-4 py-1.5 text-center text-[12px] text-bg">
+          {shareError}
         </div>
       ) : null}
 
@@ -70,12 +90,25 @@ export default function App() {
         <ListScreen pubs={pubs} visitedIds={myVisitedIds} pending={pending} onToggle={toggleVisit} />
       )}
       {screen === 'leaderboard' && (
-        <LeaderboardScreen leaderboard={leaderboard} totalPubs={pubs.length} player={player} />
+        <LeaderboardScreen
+          leaderboard={leaderboard}
+          totalPubs={pubs.length}
+          player={player}
+          onShare={() => shareCard(myStats)}
+          sharing={cardSharing}
+        />
       )}
       {screen === 'roulette' && (
         <RouletteScreen pubs={pubs} visitedIds={myVisitedIds} onOpenPub={setRoulettePick} />
       )}
-      {screen === 'badges' && <BadgesScreen pubs={pubs} visitedIds={myVisitedIds} />}
+      {screen === 'badges' && (
+        <BadgesScreen
+          pubs={pubs}
+          visitedIds={myVisitedIds}
+          onShare={() => shareCard(myStats)}
+          sharing={cardSharing}
+        />
+      )}
 
       <BottomSheet open={!!roulettePick} onClose={() => setRoulettePick(null)}>
         {roulettePick ? (

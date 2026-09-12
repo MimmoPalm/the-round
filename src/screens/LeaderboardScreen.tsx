@@ -1,15 +1,20 @@
 import type { LeaderboardRow } from '../lib/types'
 import { tierProgress } from '../lib/tiers'
 import { progressLine } from '../lib/copy'
+import { ShareIcon } from '../components/icons'
 
 export function LeaderboardScreen({
   leaderboard,
   totalPubs,
   player,
+  onShare,
+  sharing,
 }: {
   leaderboard: LeaderboardRow[]
   totalPubs: number
   player: string
+  onShare: () => void
+  sharing?: boolean
 }) {
   const me = leaderboard.find((r) => r.player === player)
   const { tier, next, toGo } = tierProgress(me?.count ?? 0)
@@ -76,7 +81,20 @@ export function LeaderboardScreen({
                   </td>
                   <td className="px-2 py-2.5 text-[14.5px] text-ink">
                     {row.player}
-                    {isMe ? <span className="ml-1.5 text-[11px] text-brass">you</span> : null}
+                    {isMe ? (
+                      <>
+                        <span className="ml-1.5 text-[11px] text-brass">you</span>
+                        <button
+                          type="button"
+                          onClick={onShare}
+                          disabled={sharing}
+                          aria-label="Share your progress"
+                          className="ml-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full align-middle text-ink-muted disabled:opacity-50"
+                        >
+                          <ShareIcon width={13} height={13} />
+                        </button>
+                      </>
+                    ) : null}
                   </td>
                   <td className="px-2 py-2.5 text-right font-mono text-[14px] text-ink">{row.count}</td>
                   <td className="px-4 py-2.5 text-right font-mono text-[13px] text-ink-muted">

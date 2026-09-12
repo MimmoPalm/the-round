@@ -1,7 +1,7 @@
 import type { Pub } from '../lib/types'
 import { distanceKm, formatDistance, HOME } from '../lib/geo'
 import { PintIcon } from './PintIcon'
-import { CheckIcon } from './icons'
+import { CheckIcon, UndoIcon } from './icons'
 
 export function PubDetail({
   pub,
@@ -58,6 +58,18 @@ export function PubDetail({
           </a>
         ) : null}
       </div>
+
+      {visited ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          disabled={pending}
+          className="mt-2.5 flex items-center gap-1.5 text-[13px] text-ink-muted disabled:opacity-50"
+        >
+          <UndoIcon width={14} height={14} />
+          Undo tick
+        </button>
+      ) : null}
     </div>
   )
 }

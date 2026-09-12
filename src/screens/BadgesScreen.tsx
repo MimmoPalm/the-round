@@ -1,10 +1,20 @@
 import { useMemo } from 'react'
 import type { Council, Pub } from '../lib/types'
-import { CrownIcon } from '../components/icons'
+import { CrownIcon, ShareIcon } from '../components/icons'
 
 const COUNCILS: Council[] = ['Islington', 'Hackney']
 
-export function BadgesScreen({ pubs, visitedIds }: { pubs: Pub[]; visitedIds: Set<string> }) {
+export function BadgesScreen({
+  pubs,
+  visitedIds,
+  onShare,
+  sharing,
+}: {
+  pubs: Pub[]
+  visitedIds: Set<string>
+  onShare: () => void
+  sharing?: boolean
+}) {
   const councils = useMemo(() => {
     return COUNCILS.map((name) => {
       const list = pubs.filter((p) => p.council === name)
@@ -37,6 +47,16 @@ export function BadgesScreen({ pubs, visitedIds }: { pubs: Pub[]; visitedIds: Se
           <Stat label="Conquered" value={`${pctConquered}%`} />
           <Stat label="Favourite" value={favourite ? favourite.name : '—'} />
         </div>
+
+        <button
+          type="button"
+          onClick={onShare}
+          disabled={sharing}
+          className="mt-3.5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-ink text-[14px] font-medium text-bg transition-transform active:scale-[0.98] disabled:opacity-60"
+        >
+          <ShareIcon width={16} height={16} />
+          {sharing ? 'Preparing card…' : 'Share your progress'}
+        </button>
       </header>
 
       <div className="grid grid-cols-2 gap-3 px-5">

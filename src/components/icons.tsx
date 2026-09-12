@@ -96,3 +96,22 @@ export function CompassIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function ShareIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 15V4" />
+      <path d="m8 8 4-4 4 4" />
+      <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+    </svg>
+  )
+}
+
+export function UndoIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M7 8 3 12l4 4" />
+      <path d="M3 12h11a5 5 0 0 1 0 10h-1" />
+    </svg>
+  )
+}

@@ -20,11 +20,10 @@ export async function fetchVisits(): Promise<Visit[]> {
 }
 
 /**
- * Append-only tick. There is no delete endpoint on the backend, so
- * "unticking" is handled entirely client-side (see lib/localVisits.ts) —
- * we simply stop counting the pub locally. If the user re-ticks it later
- * we post a fresh row; the leaderboard count is de-duplicated per pub_id
- * per player, so duplicate rows from re-ticking never inflate the score.
+ * Append-only tick — posting the same pub twice is harmless (the
+ * leaderboard count is de-duplicated per pub_id per player), which keeps
+ * re-ticking after an undo simple: no need to check for an existing row
+ * first, just post and let the count de-dupe.
  */
 export async function postVisit(player: string, pubId: string): Promise<Visit> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
@@ -39,4 +38,26 @@ export async function postVisit(player: string, pubId: string): Promise<Visit> {
   if (!res.ok) throw new Error(`Failed to post visit (${res.status})`)
   const rows: Visit[] = await res.json()
   return rows[0]
+}
+
+/**
+ * Untick: deletes every row for this (player, pub) pair server-side via
+ * the delete_visit RPC. It only matches rows where both the player name
+ * and pub id agree, so a player can only ever undo their own ticks.
+ * Returns the number of rows deleted (0 if there was nothing to delete).
+ */
+export async function deleteVisit(player: string, pubId: string): Promise<number> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/delete_visit`, {
+    method: 'POST',
+    headers: {
+      ...baseHeaders,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ p_player: player, p_pub_id: pubId }),
+  })
+  if (!res.ok) throw new Error(`Failed to undo visit (${res.status})`)
+  const rows = await res.json()
+  if (typeof rows === 'number') return rows
+  if (Array.isArray(rows)) return Number(rows[0]) || 0
+  return Number(rows) || 0
 }

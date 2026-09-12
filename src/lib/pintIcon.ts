@@ -24,7 +24,7 @@ export const GLASS_PATH =
   'M7.10,4.60 Q7.00,3.00 8.60,3.00 L23.40,3.00 Q25.00,3.00 24.90,4.60 L23.10,32.40 Q23.00,34.00 21.40,34.00 L10.60,34.00 Q9.00,34.00 8.90,32.40 Z'
 
 /** Wavy foam cap, clipped to the glass outline above the beer line. */
-const FOAM_PATH =
+export const FOAM_PATH =
   'M6.7,3 L25.3,3 L25.0,9.4 C22.8,8.1 21.2,10.3 18.6,9.2 C16.1,8.1 14.3,10.4 11.8,9.3 C9.7,8.3 8.2,9.9 6.9,9.0 Z'
 
 export function pintIconSvg(opts: { visited: boolean; size?: number }): string {

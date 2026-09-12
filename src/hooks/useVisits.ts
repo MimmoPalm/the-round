@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { LeaderboardRow, Visit } from '../lib/types'
-import { fetchVisits, postVisit } from '../lib/supabase'
-import { getHiddenPubIds, setHidden } from '../lib/localOverrides'
+import { deleteVisit, fetchVisits, postVisit } from '../lib/supabase'
 import { currentTier } from '../lib/tiers'
 
 export function useVisits(player: string | null) {
   const [visits, setVisits] = useState<Visit[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [hidden, setHiddenState] = useState<Set<string>>(() => (player ? getHiddenPubIds(player) : new Set()))
   const [pending, setPending] = useState<Set<string>>(new Set())
   const [milestone, setMilestone] = useState<string | null>(null)
 
@@ -28,10 +26,6 @@ export function useVisits(player: string | null) {
     refresh()
   }, [refresh])
 
-  useEffect(() => {
-    setHiddenState(player ? getHiddenPubIds(player) : new Set())
-  }, [player])
-
   // distinct pub_ids per player, de-duplicated (append-only backend can
   // contain repeat rows for the same pub — count each pub once)
   const visitedByPlayer = useMemo(() => {
@@ -45,11 +39,8 @@ export function useVisits(player: string | null) {
 
   const myVisitedIds = useMemo(() => {
     if (!player) return new Set<string>()
-    const remote = visitedByPlayer.get(player) ?? new Set<string>()
-    const result = new Set(remote)
-    for (const id of hidden) result.delete(id)
-    return result
-  }, [player, visitedByPlayer, hidden])
+    return new Set(visitedByPlayer.get(player) ?? new Set<string>())
+  }, [player, visitedByPlayer])
 
   const leaderboard = useMemo<LeaderboardRow[]>(() => {
     const rows = [...visitedByPlayer.entries()]
@@ -61,27 +52,41 @@ export function useVisits(player: string | null) {
   const toggleVisit = useCallback(
     async (pubId: string) => {
       if (!player) return
+      const actingPlayer = player
       const isVisited = myVisitedIds.has(pubId)
 
       if (isVisited) {
-        const next = setHidden(player, pubId, true)
-        setHiddenState(next)
-        return
-      }
-
-      // unhide if it was a remote visit we'd hidden
-      if (hidden.has(pubId)) {
-        const next = setHidden(player, pubId, false)
-        setHiddenState(next)
+        // optimistic untick: pull every local row for this player+pub (the
+        // backend is append-friendly, so a re-tick earlier could have left
+        // more than one row) so the pin flips back instantly
+        const removed = visits.filter((v) => v.player === actingPlayer && v.pub_id === pubId)
+        setPending((p) => new Set(p).add(pubId))
+        setVisits((v) => v.filter((r) => !(r.player === actingPlayer && r.pub_id === pubId)))
+        try {
+          await deleteVisit(actingPlayer, pubId)
+        } catch (err) {
+          // only roll back if we're still acting as the same identity —
+          // never resurrect a tick into a player it doesn't belong to
+          if (player === actingPlayer) {
+            setVisits((v) => [...v, ...removed])
+            setError(err instanceof Error ? err.message : 'Could not undo that tick — try again')
+          }
+        } finally {
+          setPending((p) => {
+            const copy = new Set(p)
+            copy.delete(pubId)
+            return copy
+          })
+        }
         return
       }
 
       const beforeCount = myVisitedIds.size
       setPending((p) => new Set(p).add(pubId))
       // optimistic row so the UI ticks instantly
-      setVisits((v) => [...v, { player, pub_id: pubId, created_at: new Date().toISOString() }])
+      setVisits((v) => [...v, { player: actingPlayer, pub_id: pubId, created_at: new Date().toISOString() }])
       try {
-        await postVisit(player, pubId)
+        await postVisit(actingPlayer, pubId)
         const afterTier = currentTier(beforeCount + 1)
         const beforeTier = currentTier(beforeCount)
         if (afterTier && afterTier.name !== beforeTier?.name) {
@@ -89,14 +94,16 @@ export function useVisits(player: string | null) {
         }
       } catch (err) {
         // roll back optimistic tick on failure
-        setVisits((v) => {
-          const idx = v.findIndex((r) => r.player === player && r.pub_id === pubId)
-          if (idx === -1) return v
-          const copy = [...v]
-          copy.splice(idx, 1)
-          return copy
-        })
-        setError(err instanceof Error ? err.message : 'Could not save that tick — try again')
+        if (player === actingPlayer) {
+          setVisits((v) => {
+            const idx = v.findIndex((r) => r.player === actingPlayer && r.pub_id === pubId)
+            if (idx === -1) return v
+            const copy = [...v]
+            copy.splice(idx, 1)
+            return copy
+          })
+          setError(err instanceof Error ? err.message : 'Could not save that tick — try again')
+        }
       } finally {
         setPending((p) => {
           const copy = new Set(p)
@@ -105,7 +112,7 @@ export function useVisits(player: string | null) {
         })
       }
     },
-    [player, myVisitedIds, hidden],
+    [player, myVisitedIds, visits],
   )
 
   const clearMilestone = useCallback(() => setMilestone(null), [])
