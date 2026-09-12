@@ -133,6 +133,8 @@ export default function App() {
             visited={myVisitedIds.has(roulettePick.id)}
             pending={pending.has(roulettePick.id)}
             onToggle={() => toggleVisit(roulettePick.id)}
+            pubs={pubs}
+            visitedIds={myVisitedIds}
           />
         ) : null}
       </BottomSheet>

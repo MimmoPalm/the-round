@@ -178,6 +178,8 @@ export function MapScreen({
             visited={visitedIds.has(selected.id)}
             pending={pending.has(selected.id)}
             onToggle={() => onToggle(selected.id)}
+            pubs={pubs}
+            visitedIds={visitedIds}
           />
         ) : null}
       </BottomSheet>

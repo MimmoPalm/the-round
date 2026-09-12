@@ -1,5 +1,4 @@
 import type { Pub } from '../lib/types'
-import { distanceKm, formatDistance, HOME } from '../lib/geo'
 import { PintIcon } from './PintIcon'
 import { CheckIcon, CompassIcon, UndoIcon } from './icons'
 
@@ -8,13 +7,18 @@ export function PubDetail({
   visited,
   pending,
   onToggle,
+  pubs,
+  visitedIds,
 }: {
   pub: Pub
   visited: boolean
   pending?: boolean
   onToggle: () => void
+  pubs: Pub[]
+  visitedIds: Set<string>
 }) {
-  const dist = formatDistance(distanceKm(HOME, pub))
+  const councilPubs = pubs.filter((p) => p.council === pub.council)
+  const councilVisited = councilPubs.filter((p) => visitedIds.has(p.id)).length
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${pub.lat},${pub.lon}`
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${pub.lat},${pub.lon}`
 
@@ -33,7 +37,9 @@ export function PubDetail({
             {pub.address ? pub.address : 'address unknown'}
             {pub.postcode ? `, ${pub.postcode}` : ''}
           </a>
-          <p className="mt-1 font-mono text-[12px] text-ink-muted">{dist} from home</p>
+          <p className="mt-1 font-mono text-[12px] text-ink-muted">
+            {pub.council} · {councilVisited} of {councilPubs.length} drunk
+          </p>
         </div>
       </div>
 

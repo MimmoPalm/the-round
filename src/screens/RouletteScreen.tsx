@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Pub } from '../lib/types'
-import { distanceKm, formatDistance, getCurrentPosition, HOME } from '../lib/geo'
+import { distanceKm, formatDistance, getCurrentPosition } from '../lib/geo'
 import { PintIcon } from '../components/PintIcon'
 import { CompassIcon, DiceIcon } from '../components/icons'
 import { notDrunkCountLine } from '../lib/copy'
@@ -27,10 +27,7 @@ export function RouletteScreen({
   onOpenPub: (pub: Pub) => void
 }) {
   const [pick, setPick] = useState<Pub | null>(null)
-  const [origin, setOrigin] = useState<{ lat: number; lon: number; label: string }>({
-    ...HOME,
-    label: 'home',
-  })
+  const [origin, setOrigin] = useState<{ lat: number; lon: number; label: string } | null>(null)
   const [spins, setSpins] = useState(0)
   const [locating, setLocating] = useState(false)
 
@@ -40,11 +37,17 @@ export function RouletteScreen({
     const o = within ?? origin
     if (within) setOrigin(within)
     const pool = unvisited.length > 0 ? unvisited : pubs
-    // bias toward nearby pubs: take the 40 closest to origin, then pick randomly among them
-    const nearest = [...pool]
-      .sort((a, b) => distanceKm(o, a) - distanceKm(o, b))
-      .slice(0, Math.min(40, pool.length))
-    const choice = nearest[Math.floor(Math.random() * nearest.length)]
+    let choice: Pub | undefined
+    if (o) {
+      // bias toward nearby pubs: take the 40 closest to origin, then pick randomly among them
+      const nearest = [...pool]
+        .sort((a, b) => distanceKm(o, a) - distanceKm(o, b))
+        .slice(0, Math.min(40, pool.length))
+      choice = nearest[Math.floor(Math.random() * nearest.length)]
+    } else {
+      // no known location yet — pick a plain random pub from the pool
+      choice = pool[Math.floor(Math.random() * pool.length)]
+    }
     setPick(choice ?? null)
     setSpins((n) => n + 1)
   }
@@ -56,7 +59,7 @@ export function RouletteScreen({
     if (pos) {
       spin({ lat: pos.coords.latitude, lon: pos.coords.longitude, label: 'you' })
     } else {
-      spin({ ...HOME, label: 'home' })
+      spin()
     }
   }
 
@@ -79,9 +82,11 @@ export function RouletteScreen({
               {pick.address || 'address unknown'}
               {pick.postcode ? `, ${pick.postcode}` : ''}
             </p>
-            <p className="mt-1.5 font-mono text-[12px] text-ink-muted">
-              {formatDistance(distanceKm(origin, pick))} from {origin.label}
-            </p>
+            {origin ? (
+              <p className="mt-1.5 font-mono text-[12px] text-ink-muted">
+                {formatDistance(distanceKm(origin, pick))} from {origin.label}
+              </p>
+            ) : null}
             <p className="mx-auto mt-4 max-w-[26ch] text-[13.5px] italic text-ink-secondary">
               {pickLine(spins)}
             </p>
