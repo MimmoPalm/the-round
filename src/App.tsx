@@ -3,13 +3,16 @@ import { getPlayer } from './lib/player'
 import { usePubs } from './hooks/usePubs'
 import { useVisits } from './hooks/useVisits'
 import { useShareCard } from './hooks/useShareCard'
+import { useBadgeUnlockToast } from './hooks/useBadgeToast'
 import { buildPlayerStats } from './lib/stats'
+import { buildBadges } from './lib/badges'
 import { StartScreen } from './screens/StartScreen'
 import { MapScreen } from './screens/MapScreen'
 import { ListScreen } from './screens/ListScreen'
 import { LeaderboardScreen } from './screens/LeaderboardScreen'
 import { RouletteScreen } from './screens/RouletteScreen'
 import { BadgesScreen } from './screens/BadgesScreen'
+import { ProfileScreen } from './screens/ProfileScreen'
 import { BottomNav } from './components/BottomNav'
 import { LeaderboardBar } from './components/LeaderboardBar'
 import { MilestoneBanner } from './components/MilestoneBanner'
@@ -17,7 +20,7 @@ import { BottomSheet } from './components/BottomSheet'
 import { PubDetail } from './components/PubDetail'
 import type { Pub } from './lib/types'
 
-export type Screen = 'map' | 'list' | 'leaderboard' | 'roulette' | 'badges'
+export type Screen = 'map' | 'list' | 'leaderboard' | 'roulette' | 'badges' | 'profile'
 
 export default function App() {
   const [player, setPlayerState] = useState<string | null>(() => getPlayer())
@@ -26,12 +29,11 @@ export default function App() {
 
   const { pubs, loading: pubsLoading, error: pubsError } = usePubs()
   const {
+    visits,
     leaderboard,
     myVisitedIds,
     pending,
     toggleVisit,
-    milestone,
-    clearMilestone,
     error: visitsError,
   } = useVisits(player)
   const { share: shareCard, sharing: cardSharing, shareError, clearShareError } = useShareCard()
@@ -40,6 +42,13 @@ export default function App() {
     () => buildPlayerStats(pubs, myVisitedIds, player ?? ''),
     [pubs, myVisitedIds, player],
   )
+
+  const myBadges = useMemo(
+    () => buildBadges(pubs, visits, player ?? '', myVisitedIds),
+    [pubs, visits, player, myVisitedIds],
+  )
+
+  const { current: unlockedBadge, dismiss: dismissUnlock } = useBadgeUnlockToast(myBadges, player ?? '')
 
   useEffect(() => {
     if (!shareError) return
@@ -69,8 +78,8 @@ export default function App() {
 
   return (
     <div className="min-h-[100dvh] bg-bg">
-      {milestone ? (
-        <MilestoneBanner tier={milestone} onDone={clearMilestone} onShare={() => shareCard(myStats)} />
+      {unlockedBadge ? (
+        <MilestoneBanner badge={unlockedBadge} onDone={dismissUnlock} onShare={() => shareCard(myStats)} />
       ) : null}
 
       {visitsError ? (
@@ -102,11 +111,18 @@ export default function App() {
         <RouletteScreen pubs={pubs} visitedIds={myVisitedIds} onOpenPub={setRoulettePick} />
       )}
       {screen === 'badges' && (
-        <BadgesScreen
+        <BadgesScreen badges={myBadges} onShare={() => shareCard(myStats)} sharing={cardSharing} />
+      )}
+      {screen === 'profile' && (
+        <ProfileScreen
+          player={player}
           pubs={pubs}
           visitedIds={myVisitedIds}
-          onShare={() => shareCard(myStats)}
-          sharing={cardSharing}
+          pending={pending}
+          onToggle={toggleVisit}
+          leaderboard={leaderboard}
+          stats={myStats}
+          badges={myBadges}
         />
       )}
 

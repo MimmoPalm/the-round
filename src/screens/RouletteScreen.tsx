@@ -3,6 +3,7 @@ import type { Pub } from '../lib/types'
 import { distanceKm, formatDistance, getCurrentPosition, HOME } from '../lib/geo'
 import { PintIcon } from '../components/PintIcon'
 import { CompassIcon, DiceIcon } from '../components/icons'
+import { notDrunkCountLine } from '../lib/copy'
 
 const LINES = [
   "Decision fatigue is real. We've made this one for you.",
@@ -66,9 +67,7 @@ export function RouletteScreen({
           <DiceIcon width={30} height={30} className="text-brass" />
         </div>
         <h1 className="mt-2 font-display text-[26px] font-semibold text-ink">Pint Roulette</h1>
-        <p className="mt-1 text-[13.5px] text-ink-secondary">
-          {unvisited.length} unvisited pub{unvisited.length === 1 ? '' : 's'} left to choose from.
-        </p>
+        <p className="mt-1 text-[13.5px] text-ink-secondary">{notDrunkCountLine(unvisited.length)}</p>
       </header>
 
       <div className="mt-8 flex-1">

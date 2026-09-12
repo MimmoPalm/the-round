@@ -1,51 +1,43 @@
 import { useMemo } from 'react'
-import type { Council, Pub } from '../lib/types'
-import { CrownIcon, ShareIcon } from '../components/icons'
+import type { EarnedBadge } from '../lib/badges'
+import { CompassIcon, CrownIcon, ShareIcon, TrophyIcon } from '../components/icons'
 
-const COUNCILS: Council[] = ['Islington', 'Hackney']
+const CATEGORY_META: Record<EarnedBadge['category'], { title: string; blurb: string; Icon: typeof TrophyIcon }> = {
+  milestone: { title: 'Milestones', blurb: 'Every pub count that matters.', Icon: TrophyIcon },
+  crown: { title: 'Crowns', blurb: 'Clear every pub in a borough.', Icon: CrownIcon },
+  challenge: { title: 'Challenges', blurb: 'The odd ones. Earned, not given.', Icon: CompassIcon },
+}
 
 export function BadgesScreen({
-  pubs,
-  visitedIds,
+  badges,
   onShare,
   sharing,
 }: {
-  pubs: Pub[]
-  visitedIds: Set<string>
+  badges: EarnedBadge[]
   onShare: () => void
   sharing?: boolean
 }) {
-  const councils = useMemo(() => {
-    return COUNCILS.map((name) => {
-      const list = pubs.filter((p) => p.council === name)
-      const visited = list.filter((p) => visitedIds.has(p.id)).length
-      return { name, total: list.length, visited, earned: list.length > 0 && visited === list.length }
-    })
-  }, [pubs, visitedIds])
-
-  const earnedCount = councils.filter((c) => c.earned).length
-  const totalVisited = visitedIds.size
-  const pctConquered = pubs.length ? ((totalVisited / pubs.length) * 100).toFixed(1) : '0.0'
-  const favourite = useMemo(() => {
-    let best: { name: Council; visited: number } | null = null
-    for (const c of councils) {
-      if (c.visited > 0 && (!best || c.visited > best.visited)) best = { name: c.name, visited: c.visited }
+  const earnedCount = badges.filter((b) => b.earned).length
+  const byCategory = useMemo(() => {
+    const groups = new Map<EarnedBadge['category'], EarnedBadge[]>()
+    for (const b of badges) {
+      if (!groups.has(b.category)) groups.set(b.category, [])
+      groups.get(b.category)!.push(b)
     }
-    return best
-  }, [councils])
+    return groups
+  }, [badges])
 
   return (
     <div className="min-h-[100dvh] bg-bg pb-32">
       <header className="px-5 pb-4 pt-6">
         <h1 className="font-display text-[28px] font-semibold text-ink">Badges</h1>
-        <p className="mt-1 text-[13.5px] text-ink-secondary">
-          Earn a crown by ticking off every pub in a council.
-        </p>
+        <p className="mt-1 text-[13.5px] text-ink-secondary">Your trophy case. Earn them by drinking.</p>
 
-        <div className="mt-4 grid grid-cols-3 gap-2.5">
-          <Stat label="Crowns" value={`${earnedCount}/${councils.length}`} />
-          <Stat label="Conquered" value={`${pctConquered}%`} />
-          <Stat label="Favourite" value={favourite ? favourite.name : '—'} />
+        <div className="mt-4 rounded-xl border border-border bg-surface px-3 py-2.5 text-center">
+          <p className="font-mono text-[16px] font-semibold text-ink">
+            {earnedCount}/{badges.length}
+          </p>
+          <p className="mt-0.5 text-[10.5px] uppercase tracking-wide text-ink-muted">Badges earned</p>
         </div>
 
         <button
@@ -59,45 +51,55 @@ export function BadgesScreen({
         </button>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 px-5">
-        {councils.map((c) => {
-          const pct = c.total ? Math.round((c.visited / c.total) * 100) : 0
-          return (
-            <div
-              key={c.name}
-              className={`flex flex-col items-center gap-2 rounded-2xl border p-5 text-center ${
-                c.earned ? 'border-brass bg-brass-wash' : 'border-border bg-surface'
-              }`}
-            >
-              <CrownIcon
-                width={32}
-                height={32}
-                className={c.earned ? 'text-brass' : 'text-ink-muted'}
-                style={c.earned ? { fill: 'var(--color-brass)', fillOpacity: 0.18 } : undefined}
-              />
-              <span className="font-display text-[17px] font-semibold text-ink">{c.name}</span>
-              <span className="font-mono text-[12px] text-ink-muted">
-                {c.visited}/{c.total}
-              </span>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
-                <div className="h-full rounded-full bg-brass transition-[width]" style={{ width: `${pct}%` }} />
-              </div>
-              <span className={`text-[11.5px] font-medium ${c.earned ? 'text-brass' : 'text-ink-muted'}`}>
-                {c.earned ? `${c.name} cleared` : `${pct}% cleared`}
-              </span>
+      {(['milestone', 'crown', 'challenge'] as const).map((category) => {
+        const list = byCategory.get(category)
+        if (!list || list.length === 0) return null
+        const meta = CATEGORY_META[category]
+        return (
+          <section key={category} className="px-5 pb-6">
+            <h2 className="font-display text-[17px] font-semibold text-ink">{meta.title}</h2>
+            <p className="mt-0.5 text-[12.5px] text-ink-secondary">{meta.blurb}</p>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              {list.map((badge) => (
+                <BadgeCard key={badge.id} badge={badge} Icon={meta.Icon} />
+              ))}
             </div>
-          )
-        })}
-      </div>
+          </section>
+        )
+      })}
     </div>
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function BadgeCard({ badge, Icon }: { badge: EarnedBadge; Icon: typeof TrophyIcon }) {
+  const pct = badge.progress && badge.progress.target > 0 ? Math.round((badge.progress.current / badge.progress.target) * 100) : null
+
   return (
-    <div className="rounded-xl border border-border bg-surface px-3 py-2.5 text-center">
-      <p className="font-mono text-[16px] font-semibold text-ink">{value}</p>
-      <p className="mt-0.5 text-[10.5px] uppercase tracking-wide text-ink-muted">{label}</p>
+    <div
+      className={`flex flex-col items-center gap-2 rounded-2xl border p-4 text-center ${
+        badge.earned ? 'border-brass bg-brass-wash' : 'border-border bg-surface'
+      }`}
+    >
+      <Icon
+        width={30}
+        height={30}
+        className={badge.earned ? 'text-brass' : 'text-ink-muted'}
+        style={badge.earned ? { fill: 'var(--color-brass)', fillOpacity: 0.18 } : undefined}
+      />
+      <span className="font-display text-[15px] font-semibold leading-snug text-ink">{badge.name}</span>
+      <span className="text-[11.5px] leading-snug text-ink-secondary">
+        {badge.earned ? badge.flavour : badge.requirement}
+      </span>
+      {!badge.earned && pct !== null ? (
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
+          <div className="h-full rounded-full bg-brass transition-[width]" style={{ width: `${pct}%` }} />
+        </div>
+      ) : null}
+      {!badge.earned && badge.progress ? (
+        <span className="font-mono text-[10.5px] text-ink-muted">
+          {badge.progress.current}/{badge.progress.target}
+        </span>
+      ) : null}
     </div>
   )
 }

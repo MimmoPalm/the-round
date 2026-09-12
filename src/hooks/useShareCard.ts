@@ -15,7 +15,7 @@ export function useShareCard() {
       const filename = `the-round-${stats.count}-pubs.png`
       await shareOrDownload(blob, filename, {
         title: 'The Round',
-        text: `${stats.player} has ticked ${stats.count} pub${stats.count === 1 ? '' : 's'} on The Round 🍺`,
+        text: `${stats.player} has drunk at ${stats.count} of the ${stats.totalPubs} pubs on The Round.`,
       })
     } catch (err) {
       setShareError(err instanceof Error ? err.message : 'Could not create the share card')

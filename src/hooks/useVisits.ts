@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { LeaderboardRow, Visit } from '../lib/types'
 import { deleteVisit, fetchVisits, postVisit } from '../lib/supabase'
-import { currentTier } from '../lib/tiers'
 
 export function useVisits(player: string | null) {
   const [visits, setVisits] = useState<Visit[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState<Set<string>>(new Set())
-  const [milestone, setMilestone] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     try {
@@ -81,17 +79,11 @@ export function useVisits(player: string | null) {
         return
       }
 
-      const beforeCount = myVisitedIds.size
       setPending((p) => new Set(p).add(pubId))
       // optimistic row so the UI ticks instantly
       setVisits((v) => [...v, { player: actingPlayer, pub_id: pubId, created_at: new Date().toISOString() }])
       try {
         await postVisit(actingPlayer, pubId)
-        const afterTier = currentTier(beforeCount + 1)
-        const beforeTier = currentTier(beforeCount)
-        if (afterTier && afterTier.name !== beforeTier?.name) {
-          setMilestone(afterTier.name)
-        }
       } catch (err) {
         // roll back optimistic tick on failure
         if (player === actingPlayer) {
@@ -115,17 +107,14 @@ export function useVisits(player: string | null) {
     [player, myVisitedIds, visits],
   )
 
-  const clearMilestone = useCallback(() => setMilestone(null), [])
-
   return {
     loading,
     error,
+    visits,
     leaderboard,
     myVisitedIds,
     pending,
     toggleVisit,
-    milestone,
-    clearMilestone,
     refresh,
   }
 }

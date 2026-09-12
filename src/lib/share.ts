@@ -35,3 +35,30 @@ function downloadBlob(blob: Blob, filename: string) {
   a.remove()
   setTimeout(() => URL.revokeObjectURL(url), 4000)
 }
+
+export type InviteResult = 'shared' | 'copied' | 'unsupported'
+
+/**
+ * Plain-text invite link — Web Share API first (native share sheet, lets
+ * the player pick WhatsApp/iMessage/etc.), falling back to the clipboard
+ * on browsers/devices without it (mainly desktop).
+ */
+export async function shareInviteLink(text: string, url: string): Promise<InviteResult> {
+  const nav = navigator as Navigator & { share?: (data: ShareData) => Promise<void> }
+  if (nav.share) {
+    try {
+      await nav.share({ title: 'The Round', text, url })
+      return 'shared'
+    } catch (err) {
+      // user dismissed the share sheet — treat as handled, not a failure
+      if (err instanceof DOMException && err.name === 'AbortError') return 'shared'
+      // any other failure (unsupported target etc.) — fall through to clipboard
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(`${text} ${url}`)
+    return 'copied'
+  } catch {
+    return 'unsupported'
+  }
+}

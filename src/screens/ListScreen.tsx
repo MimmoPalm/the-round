@@ -1,18 +1,18 @@
 import { useMemo, useState } from 'react'
-import type { Council, Pub } from '../lib/types'
+import type { Council, DrunkFilter, Pub } from '../lib/types'
 import { PintIcon } from '../components/PintIcon'
 import { BottomSheet } from '../components/BottomSheet'
 import { PubDetail } from '../components/PubDetail'
 import { SearchIcon } from '../components/icons'
+import { DRUNK_FILTER_LABELS } from '../lib/copy'
+import { groupByPostcode } from '../lib/pubGroups'
 
-type Filter = 'all' | 'visited' | 'unvisited'
 type CouncilFilter = 'all' | Council
 
-const FILTERS: { id: Filter; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'visited', label: 'Visited' },
-  { id: 'unvisited', label: 'Unvisited' },
-]
+const FILTERS: { id: DrunkFilter; label: string }[] = (['all', 'drunk', 'not'] as DrunkFilter[]).map((id) => ({
+  id,
+  label: DRUNK_FILTER_LABELS[id],
+}))
 
 const COUNCIL_FILTERS: { id: CouncilFilter; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -32,7 +32,7 @@ export function ListScreen({
   onToggle: (pubId: string) => void
 }) {
   const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState<Filter>('all')
+  const [filter, setFilter] = useState<DrunkFilter>('all')
   const [council, setCouncil] = useState<CouncilFilter>('all')
   const [selected, setSelected] = useState<Pub | null>(null)
 
@@ -40,8 +40,8 @@ export function ListScreen({
     const q = query.trim().toLowerCase()
     const filtered = pubs.filter((p) => {
       if (council !== 'all' && p.council !== council) return false
-      if (filter === 'visited' && !visitedIds.has(p.id)) return false
-      if (filter === 'unvisited' && visitedIds.has(p.id)) return false
+      if (filter === 'drunk' && !visitedIds.has(p.id)) return false
+      if (filter === 'not' && visitedIds.has(p.id)) return false
       if (!q) return true
       return (
         p.name.toLowerCase().includes(q) ||
@@ -50,20 +50,7 @@ export function ListScreen({
       )
     })
 
-    const byPostcode = new Map<string, Pub[]>()
-    for (const p of filtered) {
-      const key = p.postcode ? p.postcode.split(' ')[0] : 'Unknown'
-      if (!byPostcode.has(key)) byPostcode.set(key, [])
-      byPostcode.get(key)!.push(p)
-    }
-    for (const list of byPostcode.values()) {
-      list.sort((a, b) => a.name.localeCompare(b.name))
-    }
-    return [...byPostcode.entries()].sort((a, b) => {
-      if (a[0] === 'Unknown') return 1
-      if (b[0] === 'Unknown') return -1
-      return a[0].localeCompare(b[0])
-    })
+    return groupByPostcode(filtered)
   }, [pubs, query, filter, council, visitedIds])
 
   const total = pubs.length
@@ -136,7 +123,7 @@ export function ListScreen({
                       type="button"
                       onClick={() => onToggle(pub.id)}
                       disabled={pending.has(pub.id)}
-                      aria-label={visited ? `Untick ${pub.name}` : `Tick ${pub.name}`}
+                      aria-label={visited ? `Mark ${pub.name} as not drunk there` : `Mark ${pub.name} as drunk there`}
                       className="flex w-14 flex-shrink-0 items-center justify-center disabled:opacity-50"
                     >
                       <PintIcon visited={visited} size={24} className={visited ? 'animate-tick-pop' : ''} />

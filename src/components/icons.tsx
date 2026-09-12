@@ -115,3 +115,12 @@ export function UndoIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export function UserIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="8" r="3.6" />
+      <path d="M4.5 20c1.3-3.8 4.3-5.8 7.5-5.8s6.2 2 7.5 5.8" />
+    </svg>
+  )
+}

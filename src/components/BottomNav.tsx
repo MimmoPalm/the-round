@@ -1,4 +1,4 @@
-import { MapIcon, ListIcon, TrophyIcon, DiceIcon, CrownIcon } from './icons'
+import { MapIcon, ListIcon, TrophyIcon, DiceIcon, CrownIcon, UserIcon } from './icons'
 import type { Screen } from '../App'
 
 const TABS: { id: Screen; label: string; Icon: typeof MapIcon }[] = [
@@ -7,6 +7,7 @@ const TABS: { id: Screen; label: string; Icon: typeof MapIcon }[] = [
   { id: 'leaderboard', label: 'Board', Icon: TrophyIcon },
   { id: 'roulette', label: 'Roulette', Icon: DiceIcon },
   { id: 'badges', label: 'Badges', Icon: CrownIcon },
+  { id: 'profile', label: 'Profile', Icon: UserIcon },
 ]
 
 export function BottomNav({ active, onChange }: { active: Screen; onChange: (s: Screen) => void }) {

@@ -1,19 +1,13 @@
 import { useEffect, useState } from 'react'
+import type { EarnedBadge } from '../lib/badges'
 import { CloseIcon, ShareIcon } from './icons'
 
-const COPY: Record<string, string> = {
-  Local: 'Local. You know where the good stool is now.',
-  Regular: 'Regular. The bar staff are starting to recognise you.',
-  Legend: 'Legend. Buy yourself one on the house.',
-  Governor: 'Governor. Islington and Hackney answer to you now.',
-}
-
 export function MilestoneBanner({
-  tier,
+  badge,
   onDone,
   onShare,
 }: {
-  tier: string
+  badge: EarnedBadge
   onDone: () => void
   onShare: () => Promise<void>
 }) {
@@ -39,9 +33,11 @@ export function MilestoneBanner({
       <div className="animate-banner-in pointer-events-auto w-[min(92vw,380px)] rounded-2xl border border-border bg-surface p-3.5 shadow-[0_6px_24px_rgba(22,19,14,0.18)]">
         <div className="flex items-start justify-between gap-2">
           <p className="font-display text-[14px] leading-snug text-ink">
-            <span className="font-semibold text-brass">{tier}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-ink-muted">Badge unlocked</span>
+            <br />
+            <span className="font-semibold text-brass">{badge.name}</span>
             {' — '}
-            {COPY[tier] ?? 'New tier unlocked.'}
+            {badge.flavour}
           </p>
           <button
             type="button"

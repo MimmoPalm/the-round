@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet.markercluster'
-import type { Council, Pub } from '../lib/types'
+import type { Council, DrunkFilter, Pub } from '../lib/types'
 import { HOME } from '../lib/geo'
 import { pintMarkerHtml, pintMarkerLayout } from '../lib/pintIcon'
 import { BottomSheet } from '../components/BottomSheet'
 import { PubDetail } from '../components/PubDetail'
+import { cycleDrunkFilter, DRUNK_FILTER_LABELS } from '../lib/copy'
 
 const MARKER_SIZE = 40
 
@@ -49,6 +50,7 @@ export function MapScreen({
   const markersRef = useRef<Map<string, L.Marker>>(new Map())
   const [selected, setSelected] = useState<Pub | null>(null)
   const [councilFilter, setCouncilFilter] = useState<CouncilFilter>('all')
+  const [drunkFilter, setDrunkFilter] = useState<DrunkFilter>('all')
 
   // init map + markers once pubs are loaded
   useEffect(() => {
@@ -121,40 +123,53 @@ export function MapScreen({
     clusterRef.current?.refreshClusters()
   }, [visitedIds])
 
-  // show/hide markers by council without rebuilding the map or losing marker state
+  // show/hide markers by council + drunk status, combined, without rebuilding
+  // the map or losing marker state
   useEffect(() => {
     const cluster = clusterRef.current
     if (!cluster) return
     for (const marker of markersRef.current.values()) {
       const m = marker as PubMarker
-      const shouldShow = councilFilter === 'all' || m.__council === councilFilter
+      const councilOk = councilFilter === 'all' || m.__council === councilFilter
+      const drunkOk = drunkFilter === 'all' || (drunkFilter === 'drunk' ? m.__visited : !m.__visited)
+      const shouldShow = councilOk && drunkOk
       const isShown = cluster.hasLayer(marker)
       if (shouldShow && !isShown) cluster.addLayer(marker)
       if (!shouldShow && isShown) cluster.removeLayer(marker)
     }
-  }, [councilFilter, pubs])
+  }, [councilFilter, drunkFilter, visitedIds, pubs])
 
   return (
     <div className="relative min-h-[100dvh]">
       <div ref={containerRef} className="absolute inset-0" />
       <div
-        className="absolute inset-x-0 top-0 z-20 flex justify-center gap-1.5 px-4"
+        className="absolute inset-x-0 top-0 z-20 flex flex-col items-center gap-1.5 px-4"
         style={{ paddingTop: 'max(env(safe-area-inset-top), 12px)' }}
       >
-        {COUNCIL_FILTERS.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => setCouncilFilter(c.id)}
-            className={`h-8 rounded-full border px-3.5 text-[13px] font-medium shadow-[0_2px_8px_rgba(22,19,14,0.12)] backdrop-blur transition-colors ${
-              councilFilter === c.id
-                ? 'border-brass bg-brass text-bg'
-                : 'border-border bg-surface/95 text-ink-secondary'
-            }`}
-          >
-            {c.label}
-          </button>
-        ))}
+        <div className="flex justify-center gap-1.5">
+          {COUNCIL_FILTERS.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setCouncilFilter(c.id)}
+              className={`h-8 rounded-full border px-3.5 text-[13px] font-medium shadow-[0_2px_8px_rgba(22,19,14,0.12)] backdrop-blur transition-colors ${
+                councilFilter === c.id
+                  ? 'border-brass bg-brass text-bg'
+                  : 'border-border bg-surface/95 text-ink-secondary'
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => setDrunkFilter((f) => cycleDrunkFilter(f))}
+          aria-label={`Showing: ${DRUNK_FILTER_LABELS[drunkFilter]}. Tap to change.`}
+          className="h-8 rounded-full border border-border bg-surface/95 px-3.5 text-[13px] font-medium text-ink-secondary shadow-[0_2px_8px_rgba(22,19,14,0.12)] backdrop-blur transition-colors"
+        >
+          Showing: <span className="font-semibold text-ink">{DRUNK_FILTER_LABELS[drunkFilter]}</span>
+        </button>
       </div>
       <BottomSheet open={!!selected} onClose={() => setSelected(null)}>
         {selected ? (
